@@ -10,6 +10,8 @@ public class X_Robot extends Thread{ //这个线程理论上可以省略掉
 	
 	private String KEY_FLAG = "k";
 	private String MOUSE_FLAG = "m";
+	private String GRYO_FLAG = "g";
+	private String ACCE_FLAG = "a";
 	private KeyThread keyThread;
 	private MouseThread mouseThread;
 
@@ -127,7 +129,13 @@ public class X_Robot extends Thread{ //这个线程理论上可以省略掉
 					if(DBG) System.out.println("I receive cmd:\" "+ mCmd_data + "\",I must work hard.");
 
 					//Now,let mRobot to finish the job.
-					
+					int xindex = mCmd_data.indexOf("x") + 1;
+					int yindex = mCmd_data.indexOf("y") + 1;
+					String xstr = mCmd_data.substring(xindex, mCmd_data.indexOf("y"));
+					String ystr = mCmd_data.substring(yindex, mCmd_data.length());
+					float x_value = new Float(xstr).floatValue();
+					float y_value = new Float(ystr).floatValue();
+					mRobot.mouseMove((int)x_value, (int)y_value);
 				}
 				try {
 					Thread.sleep(1);
