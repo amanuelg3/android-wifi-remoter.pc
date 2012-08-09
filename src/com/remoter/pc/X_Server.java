@@ -182,12 +182,12 @@ public class X_Server extends Frame {
 			mSocket.receive(mPacket);
 			mDataTemp = mPacket.getData();
 			mData = new String(mDataTemp, 0,
-					mDataTemp.length);
-			mDisplayerTemp = mDisplayerTemp.substring(mDisplayerTemp.indexOf('\n')+1, mDisplayerTemp.lastIndexOf('\n')+1);
-			mDisplayerTemp += mData + mDataTemp.toString() +'\n';
+					mPacket.getLength());
+//			mDisplayerTemp = mDisplayerTemp.substring(mDisplayerTemp.indexOf('\n')+1, mDisplayerTemp.lastIndexOf('\n')+1);
+			mDisplayerTemp = mData;
 			
 			if (DBG) {
-				System.out.println(mDisplayerTemp);
+				//System.out.println(mDisplayerTemp);
 				mServer.mDisplayer.setText(mDisplayerTemp);
 			}
 		} catch (IOException e) {
