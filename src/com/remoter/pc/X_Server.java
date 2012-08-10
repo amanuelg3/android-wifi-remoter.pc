@@ -17,32 +17,33 @@ import java.net.UnknownHostException;
 public class X_Server extends Frame {
 
 	private static boolean DBG = true;
-	
+
 	private static final long serialVersionUID = 1L;
-	
+
 	private static X_Server mServer;
 	private static X_Robot mRobot;
 	
+	private int SocketTimeout = 400;
 	private static DatagramSocket mSocket;
 	private static DatagramPacket mPacket;
+	private static DatagramPacket mPacket_R;
 	private static boolean SocketIsOpen = false;
-	
+
 	private static String targetIP_str;
 	private static InetAddress targetIP;
 	private static int targetPort;
-	private static String locateIP_str;
 	private static int locatePort;
-	
+
 	private static byte[] mDataTemp;
 	private static String mData;
 	private static int mData_lenth;
 	private TextArea mDisplayer;
+
 	private static String mDisplayerTemp = "";
 
-	private static String CheckOk = "checkconnection";
-
+	private static String CheckSignal = "Hi,I am here.";
+	private static String ClientCloseSignal = "clientisclose.";
 	
-
 	public X_Server() {
 		super();
 		super.setTitle("PC_x");
@@ -59,14 +60,18 @@ public class X_Server extends Frame {
 	}
 
 	public static void main(String[] agrs) {
-
+		
 		mServer = new X_Server();
 		mRobot = new X_Robot();
 		
 		locatePort = 40001;
+		targetIP_str = "192.168.1.255";
+		targetPort = 40002;
+		
 		mData_lenth = 1024;
 		mDataTemp = new byte[mData_lenth];
 		mPacket = new DatagramPacket(mDataTemp, mData_lenth);
+		mPacket_R = new DatagramPacket(mDataTemp, mData_lenth);
 
 		mServer.addWindowListener(new WindowListener() {
 
@@ -99,6 +104,7 @@ public class X_Server extends Frame {
 				// TODO Auto-generated method stub
 				if (SocketIsOpen) {
 					// mServer.mSocket.close();
+					SocketIsOpen = false;
 					if (DBG)
 						System.out.println("mSocket is closed.");
 				}
@@ -122,20 +128,47 @@ public class X_Server extends Frame {
 		mServer.Working();
 	}
 
-	public void Working(){
-		String command;
+	public void Working() {
+		String command = "";
+		
+		BroadcastSignal();
+		
 		while (SocketIsOpen) {
 			command = receiveData();
-			if(isCheckSignal(command)){
-				PacketSetup(receiveData());
-				sendData(CheckOk);
-			}
+			if(isClientCloseSignal(command)) BroadcastSignal(); //client is close,so broadcast signal to all now.
 			mRobot.WorkingWith(command);
+		}
+	}
+
+	public void BroadcastSignal(){
+		
+		try {
+			mSocket.setSoTimeout(SocketTimeout);
+		} catch (SocketException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		PacketSetup(targetIP_str+":"+targetPort); // setup the packet ip with 192.168.1.255
+		
+		while(!isCheckSignal(receiveData())){
+			sendData(CheckSignal);
+//			isCheckSignal(receiveData());
+		}
+		
+		//catch mobile client.
+		PacketSetup(mPacket_R.getAddress().toString().substring(1)+":"+mPacket_R.getPort());  //setup the packet ip with mobile ip
+		
+		try {
+			mSocket.setSoTimeout(0);
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 	}
 	
-	public void SocketInit(){
+	public void SocketInit() {
 		try {
 			if (!SocketIsOpen) {
 				mSocket = new DatagramSocket(locatePort);
@@ -155,15 +188,16 @@ public class X_Server extends Frame {
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			if (DBG) {
-			mDisplayerTemp = "Socket create fail.\n";
-			mServer.mDisplayer.setText(mDisplayerTemp);
+				mDisplayerTemp = "Socket create fail.\n";
+				mServer.mDisplayer.setText(mDisplayerTemp);
 				System.out.println(mDisplayerTemp);
 			}
 			e.printStackTrace();
 		}
 	}
-	
-	public void PacketSetup(String addr){
+
+	public void PacketSetup(String addr) {
+		
 		try {
 			targetIP_str = addr.substring(0, addr.indexOf(':'));
 			targetIP = InetAddress.getByName(targetIP_str);
@@ -172,44 +206,60 @@ public class X_Server extends Frame {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		targetPort = new Integer(addr.substring(addr.indexOf(':')+1, addr.length()));
+
+		targetPort = new Integer(addr.substring(addr.indexOf(':') + 1,
+				addr.length()));
 		mPacket.setPort(targetPort);
 	}
-	
+
 	public String receiveData() {
 		try {
-			mSocket.receive(mPacket);
-			mDataTemp = mPacket.getData();
-			mData = new String(mDataTemp, 0,
-					mPacket.getLength());
-//			mDisplayerTemp = mDisplayerTemp.substring(mDisplayerTemp.indexOf('\n')+1, mDisplayerTemp.lastIndexOf('\n')+1);
-			mDisplayerTemp = mData;
 			
+			mSocket.receive(mPacket_R);
+			mDataTemp = mPacket_R.getData();
+			mData = new String(mDataTemp, 0, mPacket_R.getLength());
+			// mDisplayerTemp =
+			// mDisplayerTemp.substring(mDisplayerTemp.indexOf('\n')+1,
+			// mDisplayerTemp.lastIndexOf('\n')+1);
+			mDisplayerTemp = mData;
+
 			if (DBG) {
-				//System.out.println(mDisplayerTemp);
+				System.out.println(mDisplayerTemp);
 				mServer.mDisplayer.setText(mDisplayerTemp);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//			if(DBG) e.printStackTrace();
+		} 
 		return mData;
 	}
-	
-	public void sendData(String data){
+
+	public void sendData(String data) {
 		mDataTemp = data.getBytes();
 		mPacket.setData(mDataTemp, 0, mDataTemp.length);
 		try {
 			mSocket.send(mPacket);
+			if(DBG) System.out.println("sendData: " +data);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+//			if(DBG) e.printStackTrace();
 		}
 	}
-	
-	public boolean isCheckSignal(String data){
-		if(data.equals(CheckOk )) return true;
+
+	public boolean isCheckSignal(String data) {
+		if(data == null) 
+			return false;
+		else if (data.equals(CheckSignal))
+			return true;
 		return false;
 	}
+	
+	public boolean isClientCloseSignal(String data){
+		if(data == null) 
+			return false;
+		else if (data.equals(ClientCloseSignal))
+			return true;
+		return false;
+	}
+	
 }

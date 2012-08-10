@@ -2,7 +2,6 @@ package com.remoter.pc;
 
 import java.awt.AWTException;
 import java.awt.MouseInfo;
-import java.awt.event.KeyEvent;
 
 
 public class X_Robot extends Thread{ //这个线程理论上可以省略掉
@@ -83,7 +82,7 @@ public class X_Robot extends Thread{ //这个线程理论上可以省略掉
 					if(DBG) System.out.println("I receive cmd:\""+ mCmd_data + "\",I must work hard.");
 
 					//Now,let kRobot to finish the job.
-//					kRobot.keyPress(KeyEvent.VK_0);
+					
 				}
 				try {
 					Thread.sleep(1);
@@ -106,12 +105,11 @@ public class X_Robot extends Thread{ //这个线程理论上可以省略掉
 		float[] valuescurr = new float[2];
 		float[] valuestmp = new float[2];
 		float[] valuesdelta = new float[2];
-		int clickcount = 0,clickcountthreshold = 5;
+		int clickcount = 0,clickcountthreshold = 5; //click time
 		String Area = "";
 		String LeftArea = "LEFTAREA";
 		String RightArea = "RIGHTAREA";
 		String WheelArea = "WHEELAREA";
-		int wheelscale = 3;
 		
 		public MouseThread(){
 			super();
@@ -203,7 +201,9 @@ public class X_Robot extends Thread{ //这个线程理论上可以省略掉
 				valuestmp[i] = values[i];
 			}
 			if(!Area.equals(WheelArea))mRobot.mouseMove((int)valuescurr[0], (int)valuescurr[1]);
-			else mRobot.mouseWheel((int)(valuesdelta[1]/wheelscale));
+			else {
+				if(Math.abs(valuesdelta[1])>4) mRobot.mouseWheel((int)(valuesdelta[1])%2);
+			}
 		}
 		
 		private void handleGryoCmdData(String data){

@@ -1,8 +1,6 @@
 package com.remoter.pc;
 
 import java.awt.AWTException;
-import java.awt.MouseInfo;
-import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 
