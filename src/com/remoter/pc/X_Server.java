@@ -159,6 +159,7 @@ public class X_Server extends Frame {
 		//catch mobile client.
 		PacketSetup(mPacket_R.getAddress().toString().substring(1)+":"+mPacket_R.getPort());  //setup the packet ip with mobile ip
 		
+		
 		try {
 			mSocket.setSoTimeout(0);
 		} catch (SocketException e) {
