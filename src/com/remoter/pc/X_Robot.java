@@ -2,6 +2,7 @@ package com.remoter.pc;
 
 import java.awt.AWTException;
 import java.awt.MouseInfo;
+import java.awt.event.InputEvent;
 
 
 public class X_Robot extends Thread{ //这个线程理论上可以省略掉
@@ -10,6 +11,9 @@ public class X_Robot extends Thread{ //这个线程理论上可以省略掉
 	
 	private String KEY_FLAG = "k";
 	private String MOUSE_FLAG = "m";
+	private String MOUSE_CLICK = "c";
+	private String MOUSE_CLICKDOWN = "d";
+	private String MOUSE_CLICKUP = "u";
 	private String MOUSE_UP_FLAG = "u";
 	private String MOUSE_DOWN_FLAG = "d";
 	private String GRYO_FLAG = "g";
@@ -50,9 +54,10 @@ public class X_Robot extends Thread{ //这个线程理论上可以省略掉
     
 	private void robot_setup_with(String parameter){ //e.g. x1280y720s1.0
 		  int x_index = parameter.indexOf("x"),y_index=parameter.indexOf("y"),s_index=parameter.indexOf("s");
-		  MouseRobot.Mobilescreen_x = new Integer(parameter.substring(x_index+1, y_index)).intValue();
-		  MouseRobot.Mobilescreen_y = new Integer(parameter.substring(y_index+1, s_index)).intValue();
-		  MouseRobot.motion_scale = new Integer(parameter.substring(s_index+1)).intValue();
+		  MouseRobot.Mobilescreen_x = new Float(parameter.substring(x_index+1, y_index)).floatValue();
+		  MouseRobot.Mobilescreen_y = new Float(parameter.substring(y_index+1, s_index)).floatValue();
+		  MouseRobot.motion_scale = new Float(parameter.substring(s_index+1)).floatValue();
+		  MouseRobot.motion_scale = 1 + (MouseRobot.motion_scale - 25)/25;
 	}
 
 	public String[] separateFlagandData(String data){
@@ -126,8 +131,6 @@ public class X_Robot extends Thread{ //这个线程理论上可以省略掉
 		int clickcount = 0,clickcountthreshold = 5; //click time
 		private float mouseerase = (float) 0.3;
 
-		
-		
 		public MouseThread(){
 			super();
 			valuescurr[0] = MouseInfo.getPointerInfo().getLocation().x;
@@ -171,6 +174,10 @@ public class X_Robot extends Thread{ //这个线程理论上可以省略掉
 					
 						handleGryoCmdData(cmd_data);
 					
+					}else if(cmd_flag.equals(MOUSE_CLICK)){
+						
+						handleClickCmdData(cmd_data);
+						
 					}else{                                                           // touch mode
 					
 						handleTouchCmdData(mCmd_data);
@@ -213,17 +220,25 @@ public class X_Robot extends Thread{ //这个线程理论上可以省略掉
 			}
 			
 			for(int i=0;i<2;i++){
-				//valuesdelta[i] = values[i]-valuestmp[i];
+				valuesdelta[i] = values[i]-valuestmp[i];
 				// add some fiter 
-				valuesdelta[i] += mouseerase  * (values[i]-valuestmp[i]); 
-				valuescurr[i] += valuesdelta[i];
+//				valuesdelta[i] += mouseerase  * (values[i]-valuestmp[i]); 
+				valuescurr[i] += (valuesdelta[i])*MouseRobot.motion_scale;
 				valuestmp[i] = values[i];
 			}
 			
 			if(!mRobot.mArea.equals(mRobot.WheelArea))
 				mRobot.mouseMove((int)valuescurr[0], (int)valuescurr[1]);
 			else {
-				if(Math.abs(valuesdelta[1])>4) mRobot.mouseWheel((int)(valuesdelta[1])%2);
+				if((Math.abs(valuesdelta[1])>2)) mRobot.mouseWheel(valuesdelta[1]>0?2:-2);
+			}
+		}
+		
+		private void handleClickCmdData(String data){
+			if(data.equals(MOUSE_CLICKDOWN)){
+				mRobot.mousePress(InputEvent.BUTTON1_MASK);
+			}else if(data.equals(MOUSE_CLICKUP)){
+				mRobot.mouseRelease(InputEvent.BUTTON1_MASK);
 			}
 		}
 		

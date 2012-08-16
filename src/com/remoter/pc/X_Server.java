@@ -29,6 +29,7 @@ public class X_Server extends Frame {
 	private static DatagramPacket mPacket_R;
 	private static boolean SocketIsOpen = false;
 
+	private static String BROADCASTADDR = "192.168.1.255";
 	private static String targetIP_str;
 	private static InetAddress targetIP;
 	private static int targetPort;
@@ -65,7 +66,7 @@ public class X_Server extends Frame {
 		mRobot = new X_Robot();
 		
 		locatePort = 40001;
-		targetIP_str = "192.168.1.255";
+		targetIP_str = BROADCASTADDR;
 		targetPort = 40002;
 		
 		mData_lenth = 1024;
@@ -149,7 +150,7 @@ public class X_Server extends Frame {
 			e1.printStackTrace();
 		}
 		
-		PacketSetup(targetIP_str+":"+targetPort); // setup the packet ip with 192.168.1.255
+		PacketSetup(BROADCASTADDR+":"+targetPort); // setup the packet ip with 192.168.1.255
 		
 		while(!isCheckSignal(receiveData())){
 			sendData(CheckSignal);

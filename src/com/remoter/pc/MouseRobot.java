@@ -5,7 +5,7 @@ import java.awt.Robot;
 import java.awt.event.InputEvent;
 
 public class MouseRobot extends Robot{
-	public static int Mobilescreen_x = 1280,Mobilescreen_y = 720,motion_scale=1;
+	public static float Mobilescreen_x = 1280,Mobilescreen_y = 720,motion_scale=1;
 	public static String mArea = "";
 	public static String LeftArea = "LEFTAREA";
 	public static String RightArea = "RIGHTAREA";
@@ -16,11 +16,6 @@ public class MouseRobot extends Robot{
 		// TODO Auto-generated constructor stub
 	}
 	
-	@Override
-	public synchronized void mouseMove(int x, int y) {
-		// TODO Auto-generated method stub
-		super.mouseMove((int)(x*motion_scale), (int)(y*motion_scale));
-	}
 
 	public void mouseleftclick(){
 		 this.setAutoDelay(0);
@@ -59,7 +54,8 @@ public class MouseRobot extends Robot{
 	
 	public void ConfirmAreaBy(float[] values){
 		float rpx = (float) 0.3,rpy = (float) 0.3,wpx = (float) 0.85; //r is "right",p is "percent"
-		if(((values[0]/Mobilescreen_x)<rpx)&&((values[1]/Mobilescreen_y)<rpy))mArea = RightArea;
+//		if(((values[0]/Mobilescreen_x)<rpx)&&((values[1]/Mobilescreen_y)<rpy))mArea = RightArea;
+		if((values[1]/Mobilescreen_y)<rpy)mArea = RightArea;
 		else if(((values[0]/Mobilescreen_x)>wpx)) mArea = WheelArea;
 		else mArea = LeftArea;
 	}			
