@@ -1,15 +1,19 @@
 package com.remoter.pc;
 
 import java.awt.AWTException;
+import java.awt.Dimension;
 import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 
+
 public class MouseRobot extends Robot{
-	public static float Mobilescreen_x = 1280,Mobilescreen_y = 720,motion_scale=1;
-	public static String mArea = "";
+	public static float Mobilescreen_x = 1280,Mobilescreen_y = 720,motion_scale=1,Pcscreen_x,Pcscreen_y;
+	public String mArea = "";
 	public static String LeftArea = "LEFTAREA";
 	public static String RightArea = "RIGHTAREA";
 	public static String WheelArea = "WHEELAREA";
+	public boolean isGryoUp = false;
 	
 	public MouseRobot() throws AWTException {
 		super();
@@ -41,6 +45,19 @@ public class MouseRobot extends Robot{
 		super.mouseWheel(arg0);
 	}
 	
+	
+	public float[] mmouseMove(float values[]) {
+		// TODO Auto-generated method stub
+		values[0] = values[0] < 0?0:values[0];
+		values[0] = values[0] > Pcscreen_x?Pcscreen_x:values[0];
+		values[1] = values[1] < 0?0:values[1];
+		values[1] = values[1] > Pcscreen_y?Pcscreen_y:values[1];
+		
+		this.mouseMove((int)values[0],(int)values[1]);
+		return values;
+	}
+
+
 	public float[] parseCmdData(String data){ //values[0]->x values[1]->y 
 		float[] values = {0,0};
 		int xindex = data.indexOf("x") + 1;
@@ -68,5 +85,10 @@ public class MouseRobot extends Robot{
 		}else if(mArea.equals(WheelArea)){
 			this.mousewheelclick();
 		}						
+	}
+	
+	public void getPCScreenSize(){
+		Dimension PCsize = Toolkit.getDefaultToolkit().getScreenSize();
+		Pcscreen_x = PCsize.width;Pcscreen_y = PCsize.height;
 	}
  }
